@@ -1,0 +1,33 @@
+--leak-check=full --leak-resolution=med --track-origins=yes
+how to use valgrind vgdb
+--vgdb-error=0 
+
+valgrind --tool=memcheck --leak-check=yes --log-file=valgrind.trc --vgdb-error=0 ./valgrind_test1 &
+sleep 2; vgdb --port=33333
+
+
+Valgrind中另外两个非常有用的工具是Helgrind和DRD，
+它们主要关注多线程以及由此引起的所有问题。
+根据所使用的设置，它们可以以相当粗略的方式跟踪线程活动，
+或者记录每个互斥锁的移动，等等。
+当然，跟踪越多，应用程序的速度就越慢。
+
+可以使用Helgrind和DRD跟踪的问题是死锁，
+其中两个或多个线程试图获得一个资源的锁（mutex、rwlock或类似的），
+同时自己也持有一个锁。
+由于每个线程只有在获得另一个锁之后才会释放它们的锁，
+所以不会发生任何事情，应用程序也会被有效地冻结。
+
+$ valgrind --tool=drd --exclusive-threshold=10 drd/tests/hold_lock -i 500
+...
+==10668== Acquired at:
+==10668==    at 0x4C267C8: pthread_mutex_lock (drd_pthread_intercepts.c:395)
+==10668==    by 0x400D92: main (hold_lock.c:51)
+==10668== Lock on mutex 0x7fefffd50 was held during 503 ms (threshold: 10 ms).
+==10668==    at 0x4C26ADA: pthread_mutex_unlock (drd_pthread_intercepts.c:441)
+==10668==    by 0x400DB5: main (hold_lock.c:55)
+
+在这里，我们设置了一个10毫秒的阈值，测试应用程序被指示将锁保持500毫秒。正如我们所看到的，根据DRD，锁（mutex）被保持了503毫秒。
+
+--leak-check=full
+检查内存泄漏

@@ -1,0 +1,462 @@
+
+Code 码农网
+
+    码农文章
+    码农社区
+    码农教程
+    码农网分类
+
+    码农网登录
+    码农网导航
+
+Cppcheck 用法
+
+栏目: 编程语言 · XML · 发布时间: 2年前
+
+来源: www.uml.org.cn
+
+    内容简介：简述Cppcheck不同于 C/C++ 编译器及很多其它分析工具，它不检查代码中的语法错误。Cppcheck 只检查编译器检查不出来的 bug 类型，其目的是检查代码中真正的错误（即：零误报）。介绍
+
+    本文转载自：http://www.uml.org.cn/codeNorms/201808031.asp，本站转载出于传递更多信息之目的，版权归原作者或者来源机构所有。
+
+编辑推荐:
+本文来自于csdn，本文简单介绍了一种 C/C++ 代码缺陷静态检查工具Cppcheck的用法。
+
+简述
+
+Cppcheck不同于 C/C++ 编译器及很多其它分析工具，它不检查代码中的语法错误。Cppcheck 只检查编译器检查不出来的 bug 类型，其目的是检查代码中真正的错误（即：零误报）。
+
+介绍
+
+支持的代码和平台：
+
+1.可以检查非标准代码，包括不同的编译器扩展、内联汇编代码等。
+
+2.Cppcheck 应该被处理最新 C++ 标准的任何 C++ 编译器所编译。
+
+3.Cppcheck 应该在任何有足够 CPU 和内存的平台上工作。
+
+要知道 Cppcheck 有限制，Cppcheck 很少在报告错误方面出错，但有很多 bug，它不能检测。
+
+通过仔细测试软件，你会发现软件中有更多的 bug，而不是使用 Cppcheck。但 Cppcheck 仍可以检测到在测试和评估软件时错过的一些 bug。
+
+开始使用
+
+第一个测试程序
+
+这里有一段简单的代码：
+
+int main()
+
+{
+
+char a[10];
+
+a[10] = 0;
+
+return 0;
+
+}
+
+将代码保存进 file.c 文件中，执行：
+
+cppcheck file.c
+
+注意：执行此命令前，需要将 cppcheck.exe 所在路径添加至环境变量 PATH 中。
+
+这时，将会从 cppcheck 中输出：
+
+Checking file.c …
+
+[file.c:4]: (error) Array ‘a[10]’ accessed at index 10, which is out of bounds.
+
+检查文件夹中的所有文件
+
+通常一个项目会有许多源文件，如果需要同时检查，Cppcheck 可以检查文件夹中的所有文件：
+
+cppcheck path
+
+如果 path 是一个文件夹，cppcheck 将递归检查这个文件夹中的所有源文件。
+
+Checking path/file1.cpp…
+
+1/2 files checked 50% done
+
+Checking path/file2.cpp…
+
+2/2 files checked 100% done
+
+手动检查文件或使用项目文件
+
+使用 Cppcheck 可以手动检查文件，通过指定文件/文件夹来检查和设置，或者可以使用一个工程文件（cmake/visual studio）。
+
+使用项目文件更快，因为它只需要非常少的配置。
+
+手动检查文件可以更好的控制分析。
+
+不一定哪种方法会有最好的结果，建议尝试一下，可能会得到不同的结果，发现大多数 bug 需要使用这两种方法。
+
+检查时排除某个文件或文件夹
+
+排除一个文件或文件夹有两个选项，第一个选项是只提供你想检查的路径和文件：
+
+cppcheck src/a src/b
+
+所有位于 src/a 和 src/b 下的文件都会被检查。
+
+方式二：使用 -i 选项
+
+这时，将会忽略指定的文件/文件夹，使用下面命令在 src/c 将不会被检查：
+
+cppcheck -isrc/c src
+
+严重性
+
+可能的严重性消息有：
+
+1.错误
+
+当发现 bug 时使用
+
+2.警告
+
+关于防御性编程，以防止 bug 的建议
+
+3.风格警告
+
+风格有关问题的代码清理（未使用的函数、冗余代码、常量性等等）
+
+4.可移植性警告
+
+可移植性警告。64 位的可移植性，代码可能在不同的编译器中运行结果不同。
+
+5.性能警告
+
+建议使代码更快。这些建议只是基于常识，即使修复这些消息，也不确定会得到任何可测量的性能提升。
+
+6.信息消息
+
+配置问题，建议在配置期间仅启用这些。
+
+启用消息
+
+默认情况下，只显示错误消息，可以通过 --enable 命令启用更多检查。
+
+启用警告消息：
+
+cppcheck --enable=warning file.c
+
+启用性能消息：
+
+cppcheck --enable=performance file.c
+
+启用信息消息：
+
+cppcheck --enable=performance file.c
+
+由于历史原因 --enable=style 可以启用警告、性能、可移植性和样式信息。当使用旧 XML 格式时，这些都由 style 表示：
+
+ppcheck --enable=style file.
+
+启用警告和性能消息：
+
+cppcheck --enable=warning,performance file.c
+
+启用 unusedFunction 检查。这不能通过 --enable=style 启用，因为不会在库中正常工作。
+
+cppcheck --enable=unusedFunction file.c
+
+启用所有消息：
+
+cppcheck --enable=all
+
+不确定消息
+
+默认情况下，如果确定，Cppcheck 只显示错误消息。如果使用 --inconclusive，当分析不确定时，也会写错误消息。
+
+cppcheck --inconclusive path
+
+这当然会导致错误的警告，即使在没有 bug 的情况下，也可能会报 bug。如果可以接受错误的警告，可以使用此命令。
+
+保存结果到文件中
+
+很多时候，会希望将结果保存在一个文件中，可以使用 shell 的管道重定向错误输出到一个文件：
+
+cppcheck --inconclusive path
+
+多线程检查
+
+选项 -j 用于指定需要使用的线程数，例如，使用 4 个线程检查文件夹中的文件：
+
+cppcheck -j 4 path
+
+注意：这将禁用 unusedFunction 检查。
+
+平台
+
+应该使用一个与你的目标匹配的平台配置。
+
+默认情况下，如果代码在本地编译和执行，Cppcheck 会使用本地平台配置。
+
+Cppcheck 具有用于 Unix 和 Windows 目标的内置配置，可以轻松地使用这些 --platform 命令行标志。
+
+还可以在 XML 文件中创建自己的自定义平台配置。这里有一个例子：
+
+<?xml version="1"?>
+
+<platform>
+
+<char_bit>8</char_bit>
+
+<default-sign>signed</default-sign>
+
+<sizeof>
+
+<short>2</short>
+
+<int>4</int>
+
+<long>4</long>
+
+<long-long>8</long-long>
+
+<float>4</float>
+
+<double>8</double>
+
+<long-double>12</long-double>
+
+<pointer>4</pointer>
+
+<size_t>4</size_t>
+
+<wchar_t>2</wchar_t>
+
+</sizeof>
+
+</platform>
+
+项目
+
+当使用 CMake 或 Visual Studio 时，可以使用 --project 来分析项目。
+
+它会给你快速和简单的结果，不需要做太多的配置。但很难说这是否将会给你最好的结果，建议试一试它，并尝试不使用 --project 分析源代码，看哪个选项更适合。
+
+CMake
+
+Cppcheck 可以理解编译数据库，可以用 CMake 生成这些。
+
+例如：
+
+$ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+文件 compile_commands.json 在当前文件夹中创建。
+
+现在像这样运行 Cppcheck：
+
+$ cppcheck --project=compile_commands.json
+
+可以对单个项目文件（*.vcxproj）或整个解决方案（*.sln）运行 Cppcheck。
+
+在整个解决方案上运行 cppcheck：
+
+$ cppcheck --project=foobar.sln
+
+在单个项目文件上运行 cppcheck：
+
+$ cppcheck --project=foobar.vcxproj
+
+注意：还有一个 Visual Studio 插件，允许在 Visual Studio 中运行 cppcheck。
+
+预处理器设置
+
+如果使用 --project，那么 Cppcheck 将使用项目文件中的预处理器设置。
+
+否则，可能需要配置包含路径，定义等。
+
+定义
+
+这有一个文件，有两个配置（定义和没定义 A）：
+
+#ifdef A
+
+x = y;
+
+#else
+
+x = z;
+
+#endif
+
+默认情况下，Cppcheck 将检查所有预处理器配置（除了那些具有 #error 的配置），所以上述代码将被分析在当 A 定义和不定义的情况下。
+
+可以使用 -D 更改。当使用 -D 时，cppcheck 将默认只检查给定的配置，不会检查其它，这就是编译器的工作原理。但是可以使用 --force 或 --max-configs 来覆盖配置数量。
+
+检查所有配置：
+
+cppcheck file.c
+
+只检查配置 A：
+
+cppcheck -DA file.c
+
+当定义宏 A 时，检查所有配置：
+
+cppcheck -DA --force file.c
+
+另一个有用的标志可能是 -U，它未定义符号。 用法示例：
+
+cppcheck -UX file.c
+
+这意味着 X 没有定义，Cppcheck 不会检查当定义 X 时会发生什么。
+
+XML 输出
+
+Cppcheck 可以生成 XML 格式的输出。有一个旧的 XML 格式（version 1）和一个新的 XML 格式（version 2）。如果可以，请使用新版本。
+
+旧版本保持向后兼容性。它不会改变，但有一天可能会被删除。使用 --xml 支持这种格式。
+
+新版本修复一些旧格式的问题。新格式可能会在 cppcheck 的未来版本中更新，并带有新的属性和元素。用于检查文件并以新的 XML 格式输出错误的示例命令：
+
+cppcheck --xml-version=2 file.cpp
+
+这是一个 version 2 示例：
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<results version="2">
+
+<cppcheck version="1.66">
+
+<errors>
+
+<error id="someError" severity="error" msg="short error text"
+
+verbose="long error text" inconclusive="true" cwe="312">
+
+<location file0="file.c" file="file.h" line="1"/>
+
+</error>
+
+</errors>
+
+</results>
+
+<error> 元素
+
+每个错误都在 <error> 元素中，属性：
+
+id
+
+错误的 id，这些都是有效的符号名称。
+
+severity
+
+error、warning、style、performance、portability、information 中的任何一个。
+
+msg
+
+短格式的错误消息
+
+verbose
+
+长格式的错误消息
+
+inconclusive
+
+此属性仅在消息不确定时使用
+
+cwe
+
+消息的 CWE ID，此属性仅在消息的 CWE ID 已知时使用。
+
+<location> 元素
+
+<location> 元素列出所有错误相关位置，首先列出主要位置。
+
+属性：
+
+file
+
+文件名，相对路径和绝对路径都是可能的。
+
+file0
+
+源文件的名称（可选）
+
+line
+
+一个数字
+
+msg
+
+此属性尚不存在，但将来可以为每个位置添加一条短消息。
+
+格式化输出
+
+如果想重新格式化输出，使它看起来不同，可以使用模板。
+
+要获得 Visual Studio 兼容的输出，可以使用 --template=vs：
+
+cppcheck --template=vs gui/test.cpp
+
+输出将如下所示：
+
+Checking gui/test.cpp…
+
+gui/test.cpp(31): error: Memory leak: b
+
+gui/test.cpp(16): error: Mismatching allocation and deallocation: k
+
+要获得 gcc 兼容的输出，可以使用 --template=gcc：
+
+cppcheck --template=gcc gui/test.cpp
+
+输出将如下所示：
+
+Checking gui/test.cpp…
+
+gui/test.cpp:31: error: Memory leak: b
+
+gui/test.cpp:16: error: Mismatching allocation and deallocation: k
+
+可以编写自己的模式（例如，逗号分隔格式）：
+
+cppcheck --template="{file},{line},{severity},{id},{message}" gui/test.cpp
+
+输出将如下所示：
+
+Checking gui/test.cpp…
+
+gui/test.cpp,31,error,memleak,Memory leak: b
+
+gui/test.cpp,16,error,mismatchAllocDealloc,Mismatching allocation and deallocation: k
+
+支持以下格式说明符：
+
+1.callstack
+
+调用栈 - 如果可用
+
+2.file
+
+文件名
+
+3.id
+
+消息 id
+
+4.line
+
+行号
+
+5.message
+
+详细的消息文本
+
+6.severity
+
+一个消息的类型/等级
+
+
+本文链接：https://www.codercto.com/a/20891.html

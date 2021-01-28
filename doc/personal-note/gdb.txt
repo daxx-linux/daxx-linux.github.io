@@ -1,0 +1,8 @@
+查看寄存器情况
+info registers
+
+display expr whenever gdb stops 
+display <expr>
+
+g++ -m32生成32位机器汇编代码
+-m64生成64位

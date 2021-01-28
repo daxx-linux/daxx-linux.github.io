@@ -1,0 +1,21 @@
+xss:
+
+// 根据项目情况进行过滤，禁止掉 "javascript:" 链接、非法 scheme 等
+allowSchemes = ["http", "https"];
+
+valid = isValid(getParameter("redirect_to"), allowSchemes);
+
+if (valid) {
+  <a href="<%= escapeHTML(getParameter("redirect_to"))%>">
+    跳转...
+  </a>
+} else {
+  <a href="/404">
+    跳转...
+  </a>
+}
+
+通过这个事件，小明学习到了如下知识：
+
+    做了 HTML 转义，并不等于高枕无忧。
+    对于链接跳转，如 <a href="xxx" 或 location.href="xxx"，要检验其内容，禁止以 javascript: 开头的链接，和其他非法的 scheme。
